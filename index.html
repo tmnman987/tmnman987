@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>알파벳 및 명제추리 암기 마스터</title>
+    <style>
+        /* 기본 스타일 및 리셋 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        h1 { text-align: center; margin-bottom: 30px; color: #2c3e50; font-size: 2.2rem; }
+        h2 { color: #34495e; font-size: 1.5rem; margin-bottom: 15px; border-bottom: 2px solid #e0e6ed; padding-bottom: 5px; }
+
+        /* 메인 메뉴 버튼 레이아웃 */
+        .btn-group-main {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            justify-content: center;
+        }
+        .btn {
+            flex: 1;
+            max-width: 300px;
+            padding: 18px 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+            word-break: keep-all;
+        }
+        .btn:hover { background-color: #2980b9; transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        .btn-secondary { background-color: #95a5a6; box-shadow: 0 4px 6px rgba(149, 165, 166, 0.3); }
+
+        /* 화면 전환 애니메이션 */
+        .screen { display: none; animation: fadeIn 0.4s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 암기표 레이아웃 */
+        .tables-wrapper { display: flex; flex-direction: column; gap: 40px; }
+        
+        /* 알파벳 그리드 (6x5 최적화) */
+        .alpha-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+        .alpha-card {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #dcdde1;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .alpha-card strong { color: #e74c3c; font-size: 1.1rem; display: block; margin-bottom: 4px; }
+
+        /* 명제추리 테이블 스타일 */
+        .logic-table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ecf0f1; font-size: 0.95rem; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #2c3e50; }
+        .math-text { font-family: "Courier New", Courier, monospace; font-weight: bold; color: #8e44ad; }
+
+        /* 게임 실행 화면 UI */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+        .game-card {
+            background: white;
+            padding: 40px 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        .question-text {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+        .question-text.logic-mode {
+            font-size: 1.8rem;
+            letter-spacing: normal;
+            line-height: 1.6;
+            color: #34495e;
+            padding: 0 20px;
+        }
+
+        /* 입력 및 선택지 영역 */
+        .input-area { display: flex; justify-content: center; min-height: 100px; align-items: center; }
+        input.game-input {
+            font-size: 3.5rem;
+            font-weight: bold;
+            text-align: center;
+            width: 200px;
+            padding: 15px;
+            border: 3px solid #bdc3c7;
+            border-radius: 16px;
+            outline: none;
+            background-color: #fdfdfd;
+        }
+
+        .choices-area { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 600px; margin: 0 auto; }
+        .choice-btn {
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            background: #f8f9fa;
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            color: #2c3e50;
+        }
+        .choice-btn:hover { border-color: #3498db; background: #ebf5fb; }
+
+        /* 타이머 바 스타일 */
+        .timer-container { width: 100%; height: 12px; background-color: #ecf0f1; border-radius: 6px; margin-top: 30px; overflow: hidden; }
+        .timer-bar { height: 100%; width: 100%; background-color: #2ecc71; transition: width 0.05s linear; }
+        .timer-warning { background-color: #e74c3c; }
+
+        /* 결과 피드백 */
+        .feedback { font-size: 1.8rem; font-weight: bold; height: 40px; margin-top: 20px; }
+        .correct { color: #2ecc71; }
+        .incorrect { color: #e74c3c; }
+
+        /* 결과 창 */
+        .result-box { text-align: center; background: white; padding: 50px 20px; border-radius: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .score-text { font-size: 4rem; font-weight: 800; color: #2c3e50; margin: 30px 0; }
+
+        /* 반응형 디자인 (iPad Air 3세대 및 모바일 최적화) */
+        @media (max-width: 834px) {
+            .alpha-grid { grid-template-columns: repeat(4, 1fr); }
+            .btn-group-main { flex-direction: column; align-items: center; gap: 12px; }
+            .btn { width: 100%; max-width: 100%; }
+        }
+        @media (max-width: 600px) {
+            .alpha-grid { grid-template-columns: repeat(2, 1fr); }
+            .question-text { font-size: 3rem; }
+            .question-text.logic-mode { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="screen-main" class="screen active">
+        <h1>훈련 및 테스트 메뉴</h1>
+        <div class="btn-group-main">
+            <button class="btn" onclick="startGame(1)">1. 알파벳 숫자 암기</button>
+            <button class="btn" onclick="startGame(2)">2. 알파벳 순서 훈련</button>
+            <button class="btn" onclick="startGame(3)">3. 명제 공식 암기</button>
+        </div>
+
+        <div class="tables-wrapper">
+            <div>
+                <h2>알파벳 암기표 (6x5)</h2>
+                <div class="alpha-grid" id="alpha-grid"></div>
+            </div>
+            
+            <div>
+                <h2>명제추리 암기표</h2>
+                <div class="logic-table-wrapper">
+                    <table id="logic-table">
+                        <thead>
+                            <tr>
+                                <th>케이스</th><th>전제 1</th><th>전제 2</th><th>결론</th><th>요약</th><th>논리 구조</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <div class="game-header">
+            <span id="game-title">모드</span>
+            <span id="game-progress">1 / 10</span>
+        </div>
+        <div class="game-card">
+            <div id="question-display" class="question-text">Q</div>
+            <div class="input-area" id="input-area"></div>
+            <div id="feedback-display" class="feedback"></div>
+            <div class="timer-container">
+                <div id="timer-bar" class="timer-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-result" class="screen">
+        <div class="result-box">
+            <h1>훈련 완료!</h1>
+            <div id="score-display" class="score-text">10 / 10</div>
+            <div class="btn-group-main" style="max-width: 600px; margin: 0 auto;">
+                <button class="btn" onclick="continueGame()">10개 더 계속하기</button>
+                <button class="btn btn-secondary" onclick="goHome()">종료 (메인으로)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const alphas = [
+        { num: 1, char: 'A', text: 'Apple "1"개' }, { num: 2, char: 'B', text: 'Bycycle "2"바퀴' },
+        { num: 3, char: 'C', text: '"3"잎 Clover' }, { num: 4, char: 'D', text: 'Dog "4"다리' },
+        { num: 5, char: 'E', text: 'Egg "5"개' }, { num: 6, char: 'F', text: 'F에 줄 하나 그으면 뒤집은 6' },
+        { num: 7, char: 'G', text: 'G"7" 정상회담' }, { num: 8, char: 'H', text: 'H에 위아래 줄 그으면 8' },
+        { num: 9, char: 'I', text: '아이(I)구(9)~' }, { num: 10, char: 'J', text: 'Jesus → 십(10)자가' },
+        { num: 11, char: 'K', text: 'K"11" 자주포' }, { num: 12, char: 'L', text: 'L 일리("12") 없자나~' },
+        { num: 13, char: 'M', text: 'Middle 26/2 = "13"' }, { num: 14, char: 'N', text: '네(Ne)엣("4")~' },
+        { num: 15, char: 'O', text: '오십오(55, O"15")' }, { num: 16, char: 'P', text: '"16"번 자리 Parking' },
+        { num: 17, char: 'Q', text: '큐(Q) 칠(7)한다' }, { num: 18, char: 'R', text: 'R-"18"' },
+        { num: 19, char: 'S', text: '"에스(S)구("9")요ㅋㅋㅋ"' }, { num: 20, char: 'T', text: 'Twenty = "20"' },
+        { num: 21, char: 'U', text: 'U-"21" 축구팀' }, { num: 22, char: 'V', text: '더블 피스 V^^V = "22"' },
+        { num: 23, char: 'W', text: 'Wow "23"주년' }, { num: 24, char: 'X', text: 'X-mas는 "24"일' },
+        { num: 25, char: 'Y', text: '와이오! (Y"25")' }, { num: 26, char: 'Z', text: '마징가Z "26"호' }
+    ];
+
+    const logics = [
+        { c: 'Case 1', p1: '모든 A는 B이다', p2: '모든 B는 C이다', res: '모든 A는 C이다', sum: '모AB/모BC/모AC', str: 'A ⊂ B ⊂ C' },
+        { c: 'Case 2', p1: '모든 A는 B이다', p2: '모든 A는 C이다', res: '어떤 B는 C이다', sum: '모AB/모AC/어BC', str: 'A가 B와 C의 교집합 보장' },
+        { c: 'Case 3', p1: '모든 A는 B이다', p2: '모든 C는 A이다', res: '모든 C는 B이다', sum: '모AB/모CA/모CB', str: 'C ⊂ A ⊂ B' },
+        { c: 'Case 4', p1: '모든 A는 B이다', p2: '어떤 A는 C이다', res: '어떤 B는 C이다', sum: '모AB/어AC/어BC', str: 'A의 일부(C)는 B에 포함' },
+        { c: 'Case 5', p1: '어떤 A는 B이다', p2: '모든 A는 C이다', res: '어떤 B는 C이다', sum: '어AB/모AC/어BC', str: 'A ∩ B 영역이 C에 포함' },
+        { c: 'Case 6', p1: '어떤 A는 B이다', p2: '모든 B는 C이다', res: '어떤 A는 C이다', sum: '어AB/모BC/어AC', str: 'A ∩ B 영역이 C에 포함' }
+    ];
+
+    // 무한 루프 방지용: 오답 보기 생성용 문장 풀 (Distractor Pool)
+    const distractorPool = [
+        '모든 A는 B이다', '어떤 A는 B이다', '모든 B는 A이다', '어떤 B는 A이다',
+        '모든 B는 C이다', '어떤 B는 C이다', '모든 C는 B이다', '어떤 C는 B이다',
+        '모든 A는 C이다', '어떤 A는 C이다', '모든 C는 A이다', '어떤 C는 A이다',
+        '어느 A도 B가 아니다', '어떤 A는 B가 아니다', '어느 B도 C가 아니다'
+    ];
+
+    let currentMode = 1, currentQ = 0, score = 0, timerInterval, isProcessing = false, expectedAnswer = '';
+    let currentTimeLimit = 3000; // 가변 시간 제한
+
+    function initUI() {
+        const grid = document.getElementById('alpha-grid');
+        alphas.forEach(a => {
+            grid.innerHTML += `<div class="alpha-card"><strong>${a.num}. ${a.char}</strong>${a.text}</div>`;
+        });
+
+        const tbody = document.querySelector('#logic-table tbody');
+        logics.forEach(l => {
+            tbody.innerHTML += `<tr>
+                <td><strong>${l.c}</strong></td><td>${l.p1}</td><td>${l.p2}</td>
+                <td>${l.res}</td><td><strong>${l.sum}</strong></td><td class="math-text">${l.str}</td>
+            </tr>`;
+        });
+    }
+
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+    function goHome() { clearInterval(timerInterval); switchScreen('screen-main'); }
+
+    function startGame(mode) {
+        currentMode = mode; currentQ = 0; score = 0;
+        const titles = ["", "1. 알파벳 숫자 암기", "2. 알파벳 순서 훈련", "3. 명제 공식 암기"];
+        document.getElementById('game-title').innerText = titles[mode];
+        switchScreen('screen-game');
+        prepareNext();
+    }
+    function continueGame() { currentQ = 0; score = 0; switchScreen('screen-game'); prepareNext(); }
+
+    function prepareNext() {
+        if (currentQ >= 10) {
+            document.getElementById('score-display').innerText = `총 점수: ${score} / 10`;
+            switchScreen('screen-result');
+            return;
+        }
+        currentQ++; isProcessing = false;
+        document.getElementById('game-progress').innerText = `${currentQ} / 10`;
+        document.getElementById('feedback-display').innerText = '';
+        document.getElementById('feedback-display').className = 'feedback';
+        
+        // 시간 제한 설정: 알파벳 순서 훈련(모드 2)은 10초, 나머지는 3초
+        currentTimeLimit = (currentMode === 2) ? 10000 : 3000;
+        
+        setupModeUI();
+        startTimer();
+    }
+
+    function setupModeUI() {
+        const area = document.getElementById('input-area');
+        const qBox = document.getElementById('question-display');
+        qBox.className = currentMode === 3 ? 'question-text logic-mode' : 'question-text';
+
+        if (currentMode === 1) {
+            const rand = Math.floor(Math.random() * 26);
+            qBox.innerText = alphas[rand].char;
+            expectedAnswer = alphas[rand].num.toString();
+            area.innerHTML = `<input type="tel" inputmode="numeric" id="ans-input" class="game-input" autocomplete="off" placeholder="숫자">`;
+            const input = document.getElementById('ans-input');
+            input.addEventListener('input', (e) => { if(e.target.value === expectedAnswer) processResult(true); });
+            setTimeout(() => input.focus(), 50);
+        } else if (currentMode === 2) {
+            let base, offset, isPlus, target;
+            while(true) {
+                base = Math.floor(Math.random() * 26) + 1; offset = Math.floor(Math.random() * 10);
+                isPlus = Math.random() < 0.5; target = isPlus ? base + offset : base - offset;
+                if(target >= 1 && target <= 26) break;
+            }
+            qBox.innerText = `${String.fromCharCode(64+base)} ${isPlus?'+':'-'} ${offset}`;
+            expectedAnswer = String.fromCharCode(64 + target);
+            area.innerHTML = `<input type="text" id="ans-input" class="game-input" autocomplete="off" autocapitalize="characters" placeholder="A" maxlength="1">`;
+            const input = document.getElementById('ans-input');
+            input.addEventListener('input', (e) => {
+                let val = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
+                e.target.value = val;
+                if(val === expectedAnswer) processResult(true);
+            });
+            setTimeout(() => input.focus(), 50);
+        } else if (currentMode === 3) {
+            const lIdx = Math.floor(Math.random() * logics.length);
+            const targetLogic = logics[lIdx];
+            const hideSlot = Math.floor(Math.random() * 3); 
+            let qText = '', correctText = '', propKeys = ['p1', 'p2', 'res'], labels = ['[전제 1]', '[전제 2]', '[결 론]'];
+
+            for(let i=0; i<3; i++) {
+                if(i === hideSlot) { qText += `${labels[i]} <span style="color:#e74c3c;">( ? )</span><br>`; correctText = targetLogic[propKeys[i]]; }
+                else { qText += `${labels[i]} ${targetLogic[propKeys[i]]}<br>`; }
+            }
+            qBox.innerHTML = qText; expectedAnswer = correctText;
+
+            let options = new Set([correctText]);
+            // 무한 루프 픽스: distractorPool에서 안전하게 오답을 가져옴
+            while(options.size < 3) { 
+                const randomDistractor = distractorPool[Math.floor(Math.random() * distractorPool.length)];
+                options.add(randomDistractor); 
+            }
+            let optArray = Array.from(options).sort(() => Math.random() - 0.5);
+            area.innerHTML = `<div class="choices-area">${optArray.map(opt => `<button class="choice-btn" onclick="checkChoice('${opt}')">${opt}</button>`).join('')}</div>`;
+        }
+    }
+
+    window.checkChoice = function(val) { if(!isProcessing) processResult(val === expectedAnswer); }
+
+    function processResult(isCorrect) {
+        if (isProcessing) return; isProcessing = true; clearInterval(timerInterval);
+        const input = document.getElementById('ans-input');
+        if (input) input.readOnly = true;
+        document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+
+        const fb = document.getElementById('feedback-display');
+        if (isCorrect) { score++; fb.innerText = "정답!"; fb.className = "feedback correct"; }
+        else { fb.innerText = `오답! (정답: ${expectedAnswer})`; fb.className = "feedback incorrect"; }
+        setTimeout(prepareNext, 800);
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        const bar = document.getElementById('timer-bar');
+        bar.style.transition = 'none'; bar.style.width = '100%'; bar.classList.remove('timer-warning');
+        void bar.offsetWidth; bar.style.transition = 'width 0.05s linear';
+        let startTime = Date.now();
+        timerInterval = setInterval(() => {
+            if (isProcessing) return;
+            let elapsed = Date.now() - startTime;
+            let percent = Math.max(0, 100 - (elapsed / currentTimeLimit * 100));
+            bar.style.width = percent + '%';
+            if (percent < 30) bar.classList.add('timer-warning');
+            if (elapsed >= currentTimeLimit) { clearInterval(timerInterval); processResult(false); }
+        }, 20);
+    }
+
+    window.onload = initUI;
+</script>
+</body>
+</html>
