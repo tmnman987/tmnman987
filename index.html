@@ -4,11 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GSAT 마스터</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <style>
-        /* 기본 스타일 및 리셋 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -18,16 +22,11 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 30px 20px; }
 
         h1 { text-align: center; margin-bottom: 30px; color: #2c3e50; font-size: 2.2rem; }
         h2 { color: #34495e; font-size: 1.5rem; margin-bottom: 15px; border-bottom: 2px solid #e0e6ed; padding-bottom: 5px; }
 
-        /* 메인 메뉴 버튼 레이아웃 (5개 버튼 대응) */
         .btn-group-main {
             display: flex;
             flex-wrap: wrap;
@@ -54,12 +53,10 @@
         .btn:active { transform: translateY(0); }
         .btn-secondary { background-color: #95a5a6; box-shadow: 0 4px 6px rgba(149, 165, 166, 0.3); }
 
-        /* 화면 전환 애니메이션 */
         .screen { display: none; animation: fadeIn 0.4s ease; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 암기표 레이아웃 */
         .tables-wrapper { display: flex; flex-direction: column; gap: 40px; }
         
         .alpha-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
@@ -72,17 +69,14 @@
         th { background-color: #f8f9fa; font-weight: 600; color: #2c3e50; }
         .math-text { font-family: "Courier New", Courier, monospace; font-weight: bold; color: #8e44ad; }
 
-        /* 게임 실행 화면 UI */
         .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 1.2rem; font-weight: 600; color: #7f8c8d; }
         .game-card { background: white; padding: 40px 20px; border-radius: 16px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         .question-text { font-size: 4rem; font-weight: 800; color: #2c3e50; margin: 20px 0; letter-spacing: 2px; }
         .question-text.logic-mode { font-size: 1.8rem; letter-spacing: normal; line-height: 1.6; color: #34495e; padding: 0 20px; }
 
-        /* 입력 및 선택지 영역 */
         .input-area { display: flex; justify-content: center; min-height: 100px; align-items: center; }
         input.game-input { font-size: 3.5rem; font-weight: bold; text-align: center; width: 220px; padding: 15px; border: 3px solid #bdc3c7; border-radius: 16px; outline: none; background-color: #fdfdfd; }
         
-        /* 5번 모드: 분수 비교 UI */
         .fraction-compare-container { display: flex; align-items: center; justify-content: center; gap: 30px; width: 100%; }
         .frac-box { text-align: center; font-size: 3.5rem; min-width: 140px; }
         .comp-buttons { display: flex; flex-direction: column; gap: 10px; }
@@ -93,21 +87,17 @@
         .choice-btn { padding: 20px; font-size: 1.2rem; font-weight: 600; background: #f8f9fa; border: 2px solid #e0e6ed; border-radius: 12px; cursor: pointer; transition: all 0.15s; text-align: left; color: #2c3e50; }
         .choice-btn:hover { border-color: #3498db; background: #ebf5fb; }
 
-        /* 타이머 바 스타일 */
         .timer-container { width: 100%; height: 12px; background-color: #ecf0f1; border-radius: 6px; margin-top: 30px; overflow: hidden; }
         .timer-bar { height: 100%; width: 100%; background-color: #2ecc71; transition: width 0.05s linear; }
         .timer-warning { background-color: #e74c3c; }
 
-        /* 결과 피드백 */
         .feedback { font-size: 1.8rem; font-weight: bold; height: 40px; margin-top: 20px; }
         .correct { color: #2ecc71; }
         .incorrect { color: #e74c3c; }
 
-        /* 결과 창 */
         .result-box { text-align: center; background: white; padding: 50px 20px; border-radius: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         .score-text { font-size: 4rem; font-weight: 800; color: #2c3e50; margin: 30px 0; }
 
-        /* 반응형 디자인 */
         @media (max-width: 834px) {
             .alpha-grid { grid-template-columns: repeat(4, 1fr); }
             .btn { flex: 1 1 calc(50% - 15px); }
@@ -242,7 +232,7 @@
         currentMode = mode; currentQ = 0; score = 0;
         const titles = ["", "1. 알파벳 숫자 암기", "2. 알파벳 순서 훈련", "3. 명제 공식 암기", "4. 세자리 수 덧셈/뺄셈", "5. 분수 비교"];
         document.getElementById('game-title').innerText = titles[mode];
-        maxQ = (mode >= 4) ? 5 : 10; // 4, 5번 모드는 5문제
+        maxQ = (mode >= 4) ? 5 : 10;
         switchScreen('screen-game');
         prepareNext();
     }
@@ -259,7 +249,6 @@
         document.getElementById('feedback-display').innerText = '';
         document.getElementById('feedback-display').className = 'feedback';
         
-        // 1번(3초), 2번(10초), 3번(3초) / 4번, 5번은 시간 제한 없음
         currentTimeLimit = (currentMode === 2) ? 10000 : 3000;
         
         setupModeUI();
@@ -270,7 +259,7 @@
         const area = document.getElementById('input-area');
         const qBox = document.getElementById('question-display');
         qBox.className = currentMode === 3 ? 'question-text logic-mode' : 'question-text';
-        qBox.style.display = 'block'; // 5번 모드에서 숨겼을 수도 있으므로 원상복구
+        qBox.style.display = 'block';
 
         if (currentMode === 1) {
             const rand = Math.floor(Math.random() * 26);
@@ -319,11 +308,9 @@
             area.innerHTML = `<div class="choices-area">${optArray.map(opt => `<button class="choice-btn" onclick="checkChoice('${opt}')">${opt}</button>`).join('')}</div>`;
             
         } else if (currentMode === 4) {
-            // 세자리 덧셈, 뺄셈
             let a = Math.floor(Math.random() * 900) + 100;
             let b = Math.floor(Math.random() * 900) + 100;
             let isPlus = Math.random() < 0.5;
-            // 뺄셈일 경우 항상 양수가 나오도록 a가 더 크게 설정
             if (!isPlus && a < b) { let temp = a; a = b; b = temp; }
             
             qBox.innerText = `${a} ${isPlus ? '+' : '-'} ${b}`;
@@ -332,22 +319,30 @@
             area.innerHTML = `<input type="tel" inputmode="numeric" id="ans-input" class="game-input" autocomplete="off" placeholder="정답">`;
             const input = document.getElementById('ans-input');
             input.addEventListener('input', (e) => { 
-                // 오답일 땐 아무 일도 안 일어나고 정답이 되는 순간 넘어감
                 if(e.target.value === expectedAnswer) processResult(true); 
             });
             setTimeout(() => input.focus(), 50);
 
         } else if (currentMode === 5) {
-            // 분수 비교
-            let n1 = Math.floor(Math.random() * 900) + 100; let d1 = Math.floor(Math.random() * 900) + 100;
-            let n2 = Math.floor(Math.random() * 900) + 100; let d2 = Math.floor(Math.random() * 900) + 100;
-            let val1 = n1 / d1; let val2 = n2 / d2;
+            let n1, d1, n2, d2, val1, val2;
+            
+            // 1 미만, 분자분모 10~999, 차이가 0.5 미만 조건 충족 루프
+            while(true) {
+                d1 = Math.floor(Math.random() * 990) + 10;
+                n1 = Math.floor(Math.random() * (d1 - 10)) + 10;
+                d2 = Math.floor(Math.random() * 990) + 10;
+                n2 = Math.floor(Math.random() * (d2 - 10)) + 10;
+                
+                val1 = n1 / d1; val2 = n2 / d2;
+                
+                if (Math.abs(val1 - val2) < 0.5) break;
+            }
             
             if (Math.abs(val1 - val2) < 0.00001) expectedAnswer = '=';
             else if (val1 > val2) expectedAnswer = '>';
             else expectedAnswer = '<';
 
-            qBox.style.display = 'none'; // 기존 질문 박스 숨김
+            qBox.style.display = 'none'; 
             
             area.innerHTML = `
             <div class="fraction-compare-container">
@@ -366,8 +361,9 @@
                 </div>
             </div>
             `;
-            // 동적으로 생성된 수식을 MathJax가 다시 렌더링하도록 요청
-            if (window.MathJax) MathJax.typesetPromise();
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
         }
     }
 
@@ -389,7 +385,6 @@
         if (isCorrect) { score++; fb.innerText = "정답!"; fb.className = "feedback correct"; }
         else { fb.innerText = `오답! (정답: ${expectedAnswer})`; fb.className = "feedback incorrect"; }
         
-        // 분수 비교는 소수점을 읽을 수 있도록 약간 더 지연시간을 줌
         let delay = (currentMode === 5) ? 1500 : 800;
         setTimeout(prepareNext, delay);
     }
