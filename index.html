@@ -225,10 +225,10 @@
 
     function initUI() {
         const grid = document.getElementById('alpha-grid');
-        alphas.forEach(a => { grid.innerHTML += `<div class="alpha-card"><strong>. </strong></div>`; });
+        alphas.forEach(a => { grid.innerHTML += `<div class="alpha-card"><strong>${a.num}. ${a.char}</strong>${a.text}</div>`; });
         const tbody = document.querySelector('#logic-table tbody');
         logics.forEach(l => {
-            tbody.innerHTML += `<tr><td><strong></strong></td><td></td><td></td><td></td><td><strong></strong></td><td class="math-text"></td></tr>`;
+            tbody.innerHTML += `<tr><td><strong>${l.c}</strong></td><td>${l.p1}</td><td>${l.p2}</td><td>${l.res}</td><td><strong>${l.sum}</strong></td><td class="math-text">${l.str}</td></tr>`;
         });
     }
 
@@ -250,12 +250,12 @@
 
     function prepareNext() {
         if (currentQ >= maxQ) {
-            document.getElementById('score-display').innerText = `총 점수:  / `;
+            document.getElementById('score-display').innerText = `총 점수: ${score} / ${maxQ}`;
             switchScreen('screen-result');
             return;
         }
         currentQ++; isProcessing = false;
-        document.getElementById('game-progress').innerText = ` / `;
+        document.getElementById('game-progress').innerText = `${currentQ} / ${maxQ}`;
         document.getElementById('feedback-display').innerText = '';
         document.getElementById('feedback-display').className = 'feedback';
         
@@ -288,7 +288,7 @@
                 isPlus = Math.random() < 0.5; target = isPlus ? base + offset : base - offset;
                 if(target >= 1 && target <= 26) break;
             }
-            qBox.innerText = ` '-' `;
+            qBox.innerText = `${String.fromCharCode(64+base)} ${isPlus?'+':'-'} ${offset}`;
             expectedAnswer = String.fromCharCode(64 + target);
             area.innerHTML = `<input type="text" id="ans-input" class="game-input" autocomplete="off" autocapitalize="characters" placeholder="A" maxlength="1">`;
             const input = document.getElementById('ans-input');
@@ -306,8 +306,8 @@
             let qText = '', correctText = '', propKeys = ['p1', 'p2', 'res'], labels = ['[전제 1]', '[전제 2]', '[결 론]'];
 
             for(let i=0; i<3; i++) {
-                if(i === hideSlot) { qText += ` <span style="color:#e74c3c;">( ? )</span><br>`; correctText = targetLogic[propKeys[i]]; }
-                else { qText += ` <br>`; }
+                if(i === hideSlot) { qText += `${labels[i]} <span style="color:#e74c3c;">( ? )</span><br>`; correctText = targetLogic[propKeys[i]]; }
+                else { qText += `${labels[i]} ${targetLogic[propKeys[i]]}<br>`; }
             }
             qBox.innerHTML = qText; expectedAnswer = correctText;
 
@@ -316,7 +316,7 @@
                 options.add(distractorPool[Math.floor(Math.random() * distractorPool.length)]); 
             }
             let optArray = Array.from(options).sort(() => Math.random() - 0.5);
-            area.innerHTML = `<div class="choices-area">')"></button>`).join('')}</div>`;
+            area.innerHTML = `<div class="choices-area">${optArray.map(opt => `<button class="choice-btn" onclick="checkChoice('${opt}')">${opt}</button>`).join('')}</div>`;
             
         } else if (currentMode === 4) {
             // 세자리 덧셈, 뺄셈
@@ -326,7 +326,7 @@
             // 뺄셈일 경우 항상 양수가 나오도록 a가 더 크게 설정
             if (!isPlus && a < b) { let temp = a; a = b; b = temp; }
             
-            qBox.innerText = `  '-' `;
+            qBox.innerText = `${a} ${isPlus ? '+' : '-'} ${b}`;
             expectedAnswer = (isPlus ? a + b : a - b).toString();
             
             area.innerHTML = `<input type="tel" inputmode="numeric" id="ans-input" class="game-input" autocomplete="off" placeholder="정답">`;
@@ -352,8 +352,8 @@
             area.innerHTML = `
             <div class="fraction-compare-container">
                 <div class="frac-box">
-                    <div id="frac1">\(\frac{}{}\)</div>
-                    <div class="decimal-val" id="dec1" style="display:none; color:#7f8c8d; font-size:1.4rem; margin-top:15px; font-weight:bold;"></div>
+                    <div id="frac1">\\(\\frac{${n1}}{${d1}}\\)</div>
+                    <div class="decimal-val" id="dec1" style="display:none; color:#7f8c8d; font-size:1.4rem; margin-top:15px; font-weight:bold;">${val1.toFixed(3)}</div>
                 </div>
                 <div class="comp-buttons">
                     <button class="frac-btn" onclick="checkFrac('<')">&lt;</button>
@@ -361,8 +361,8 @@
                     <button class="frac-btn" onclick="checkFrac('>')">&gt;</button>
                 </div>
                 <div class="frac-box">
-                    <div id="frac2">\(\frac{}{}\)</div>
-                    <div class="decimal-val" id="dec2" style="display:none; color:#7f8c8d; font-size:1.4rem; margin-top:15px; font-weight:bold;"></div>
+                    <div id="frac2">\\(\\frac{${n2}}{${d2}}\\)</div>
+                    <div class="decimal-val" id="dec2" style="display:none; color:#7f8c8d; font-size:1.4rem; margin-top:15px; font-weight:bold;">${val2.toFixed(3)}</div>
                 </div>
             </div>
             `;
@@ -387,7 +387,7 @@
 
         const fb = document.getElementById('feedback-display');
         if (isCorrect) { score++; fb.innerText = "정답!"; fb.className = "feedback correct"; }
-        else { fb.innerText = `오답! (정답: )`; fb.className = "feedback incorrect"; }
+        else { fb.innerText = `오답! (정답: ${expectedAnswer})`; fb.className = "feedback incorrect"; }
         
         // 분수 비교는 소수점을 읽을 수 있도록 약간 더 지연시간을 줌
         let delay = (currentMode === 5) ? 1500 : 800;
