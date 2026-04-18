@@ -77,6 +77,23 @@
         .input-area { display: flex; justify-content: center; min-height: 100px; align-items: center; }
         input.game-input { font-size: 3.5rem; font-weight: bold; text-align: center; width: 220px; padding: 15px; border: 3px solid #bdc3c7; border-radius: 16px; outline: none; background-color: #fdfdfd; }
         
+        textarea.scratchpad {
+            width: 100%;
+            max-width: 350px;
+            min-height: 120px;
+            padding: 15px;
+            margin-top: 10px;
+            border: 3px solid #bdc3c7;
+            border-radius: 16px;
+            outline: none;
+            background-color: #fdfdfd;
+            font-family: inherit;
+            font-size: 1.2rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        textarea.scratchpad:focus { border-color: #3498db; }
+
         .fraction-compare-container { display: flex; align-items: center; justify-content: center; gap: 30px; width: 100%; }
         .frac-box { text-align: center; font-size: 3.5rem; min-width: 140px; }
         .comp-buttons { display: flex; flex-direction: column; gap: 10px; }
@@ -91,7 +108,7 @@
         .timer-bar { height: 100%; width: 100%; background-color: #2ecc71; transition: width 0.05s linear; }
         .timer-warning { background-color: #e74c3c; }
 
-        .feedback { font-size: 1.8rem; font-weight: bold; height: 40px; margin-top: 20px; }
+        .feedback { font-size: 1.8rem; font-weight: bold; min-height: 40px; margin-top: 20px; margin-bottom: 10px; }
         .correct { color: #2ecc71; }
         .incorrect { color: #e74c3c; }
 
@@ -126,11 +143,12 @@
             <button class="btn" onclick="startGame(3)">3. 명제 공식 암기</button>
             <button class="btn" onclick="startGame(4)">4. 세자리 수 덧셈/뺄셈</button>
             <button class="btn" onclick="startGame(5)">5. 분수 비교</button>
+            <button class="btn" onclick="startGame(6)">6. 곱셈/나눗셈 (5% 오차)</button>
         </div>
 
         <div class="tables-wrapper">
             <div>
-                <h2>알파벳 암기표 (6x5)</h2>
+                <h2>알파벳 암기표</h2>
                 <div class="alpha-grid" id="alpha-grid"></div>
             </div>
             
@@ -153,7 +171,10 @@
     <div id="screen-game" class="screen">
         <div class="game-header">
             <span id="game-title">모드</span>
-            <span id="game-progress">1 / 10</span>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="game-progress">1 / 10</span>
+                <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.9rem; border: none; border-radius: 8px; cursor: pointer; color: white; line-height: 1;" onclick="goHome()">뒤로가기</button>
+            </div>
         </div>
         <div class="game-card">
             <div id="question-display" class="question-text">Q</div>
@@ -230,7 +251,7 @@
 
     function startGame(mode) {
         currentMode = mode; currentQ = 0; score = 0;
-        const titles = ["", "1. 알파벳 숫자 암기", "2. 알파벳 순서 훈련", "3. 명제 공식 암기", "4. 세자리 수 덧셈/뺄셈", "5. 분수 비교"];
+        const titles = ["", "1. 알파벳 숫자 암기", "2. 알파벳 순서 훈련", "3. 명제 공식 암기", "4. 세자리 수 덧셈/뺄셈", "5. 분수 비교", "6. 곱셈/나눗셈 연습"];
         document.getElementById('game-title').innerText = titles[mode];
         maxQ = (mode >= 4) ? 5 : 10;
         switchScreen('screen-game');
@@ -246,8 +267,16 @@
         }
         currentQ++; isProcessing = false;
         document.getElementById('game-progress').innerText = `${currentQ} / ${maxQ}`;
-        document.getElementById('feedback-display').innerText = '';
-        document.getElementById('feedback-display').className = 'feedback';
+        
+        // 피드백 위치 원상복구 및 초기화
+        const feedbackEl = document.getElementById('feedback-display');
+        feedbackEl.innerText = '';
+        feedbackEl.className = 'feedback';
+        const gameCard = document.querySelector('.game-card');
+        const timerContainer = document.querySelector('.timer-container');
+        if (feedbackEl.parentNode !== gameCard) {
+            gameCard.insertBefore(feedbackEl, timerContainer);
+        }
         
         currentTimeLimit = (currentMode === 2) ? 10000 : 3000;
         
@@ -271,14 +300,16 @@
             setTimeout(() => input.focus(), 50);
             
         } else if (currentMode === 2) {
-            let base, offset, isPlus, target;
-            while(true) {
-                base = Math.floor(Math.random() * 26) + 1; offset = Math.floor(Math.random() * 10);
-                isPlus = Math.random() < 0.5; target = isPlus ? base + offset : base - offset;
-                if(target >= 1 && target <= 26) break;
-            }
+            let base = Math.floor(Math.random() * 26) + 1; 
+            let offset = Math.floor(Math.random() * 4) + 1; 
+            let isPlus = Math.random() < 0.5; 
+            
+            let targetNum = base + (isPlus ? offset : -offset);
+            targetNum = ((targetNum - 1) % 26 + 26) % 26 + 1;
+
             qBox.innerText = `${String.fromCharCode(64+base)} ${isPlus?'+':'-'} ${offset}`;
-            expectedAnswer = String.fromCharCode(64 + target);
+            expectedAnswer = String.fromCharCode(64 + targetNum);
+            
             area.innerHTML = `<input type="text" id="ans-input" class="game-input" autocomplete="off" autocapitalize="characters" placeholder="A" maxlength="1">`;
             const input = document.getElementById('ans-input');
             input.addEventListener('input', (e) => {
@@ -326,7 +357,6 @@
         } else if (currentMode === 5) {
             let n1, d1, n2, d2, val1, val2;
             
-            // 1 미만, 분자분모 10~999, 차이가 0.5 미만 조건 충족 루프
             while(true) {
                 d1 = Math.floor(Math.random() * 990) + 10;
                 n1 = Math.floor(Math.random() * (d1 - 10)) + 10;
@@ -364,6 +394,62 @@
             if (window.MathJax && window.MathJax.typesetPromise) {
                 MathJax.typesetPromise();
             }
+        } else if (currentMode === 6) {
+            let get2 = () => Math.floor(Math.random() * 90) + 10;
+            let get3 = () => Math.floor(Math.random() * 900) + 100;
+            
+            let a, b, isMult;
+            
+            // 문제 1, 2: 2자리 x/÷ 2자리
+            if (currentQ <= 2) {
+                a = get2(); b = get2(); isMult = Math.random() < 0.5;
+            } 
+            // 문제 3, 4: 3자리 x 2자리 OR 2자리 ÷ 3자리
+            else if (currentQ <= 4) {
+                isMult = Math.random() < 0.5;
+                if (isMult) { a = get3(); b = get2(); } 
+                else { a = get2(); b = get3(); }
+            } 
+            // 문제 5: 3자리 x/÷ 3자리
+            else {
+                a = get3(); b = get3(); isMult = Math.random() < 0.5;
+            }
+
+            window.isMultMode = isMult;
+
+            if (isMult) {
+                let exact = a * b;
+                qBox.innerText = `${a} × ${b}`;
+                window.exactValue = exact; 
+                expectedAnswer = exact.toString();
+            } else {
+                // 나눗셈: 셋째 자리에서 반올림하여 둘째 자리까지 계산
+                let exact = Math.round((a / b) * 100) / 100;
+                qBox.innerHTML = `${a} ÷ ${b}<div style="font-size: 1.2rem; color: #7f8c8d; margin-top: 15px; font-weight: normal;">(소숫점 2째 자리까지 입력, 셋째 자리에서 반올림)</div>`;
+                window.exactValue = exact;
+                expectedAnswer = exact.toFixed(2);
+            }
+            
+            area.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; width: 100%;" id="mode6-container">
+                    <input type="text" inputmode="decimal" id="ans-input" class="game-input" autocomplete="off" placeholder="정답">
+                    <textarea class="scratchpad" id="scratchpad"></textarea>
+                </div>
+            `;
+            
+            // 피드백 엘리먼트를 입력창과 메모장 사이로 이동
+            const container = document.getElementById('mode6-container');
+            const feedbackEl = document.getElementById('feedback-display');
+            container.insertBefore(feedbackEl, document.getElementById('scratchpad'));
+
+            const input = document.getElementById('ans-input');
+            input.addEventListener('input', (e) => { 
+                let val = parseFloat(e.target.value);
+                if(!isNaN(val) && val >= window.exactValue * 0.95 && val <= window.exactValue * 1.05) {
+                    processResult(true); 
+                }
+            });
+            setTimeout(() => input.focus(), 50);
         }
     }
 
@@ -377,15 +463,33 @@
 
     function processResult(isCorrect) {
         if (isProcessing) return; isProcessing = true; clearInterval(timerInterval);
+        
         const input = document.getElementById('ans-input');
         if (input) input.readOnly = true;
+        const scratch = document.querySelector('.scratchpad');
+        if (scratch) scratch.readOnly = true;
+        
         document.querySelectorAll('.choice-btn, .frac-btn').forEach(b => b.disabled = true);
 
         const fb = document.getElementById('feedback-display');
-        if (isCorrect) { score++; fb.innerText = "정답!"; fb.className = "feedback correct"; }
-        else { fb.innerText = `오답! (정답: ${expectedAnswer})`; fb.className = "feedback incorrect"; }
+        if (isCorrect) { 
+            score++; 
+            if (currentMode === 6) {
+                let exactStr = window.isMultMode ? window.exactValue.toString() : window.exactValue.toFixed(2);
+                let marginStr = (Math.round((window.exactValue * 0.05) * 100) / 100).toFixed(2);
+                
+                fb.innerHTML = `정답! <br><span style="font-size: 1.2rem; display: block; margin-top: 5px;">실제 값: ${exactStr} (±${marginStr})</span>`;
+            } else {
+                fb.innerText = "정답!";
+            }
+            fb.className = "feedback correct"; 
+        }
+        else { 
+            fb.innerText = `오답! (정답: ${expectedAnswer})`; 
+            fb.className = "feedback incorrect"; 
+        }
         
-        let delay = (currentMode === 5) ? 1500 : 800;
+        let delay = (currentMode >= 5) ? 1500 : 800;
         setTimeout(prepareNext, delay);
     }
 
@@ -393,7 +497,6 @@
         clearInterval(timerInterval);
         const barContainer = document.querySelector('.timer-container');
         
-        // 3번, 4번, 5번 모드는 시간 제한 없음
         if (currentMode >= 3) {
             barContainer.style.display = 'none';
             return;
