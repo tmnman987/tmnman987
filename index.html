@@ -248,8 +248,9 @@
         { c: 'Case 1', p1: '모든 A는 B이다', p2: '모든 B는 C이다', res: '모든 A는 C이다', sum: '모AB/모BC/모AC', str: 'A ⊂ B ⊂ C' },
         { c: 'Case 2', p1: '모든 A는 B이다', p2: '모든 C는 A이다', res: '모든 C는 B이다', sum: '모AB/모CA/모CB', str: 'C ⊂ A ⊂ B' },
         { c: 'Case 3', p1: '모든 A는 B이다', p2: '모든 A는 C이다', res: '어떤 B는 C이다', sum: '모AB/모AC/어BC', str: 'A가 B와 C의 교집합 보장' },
-        { c: 'Case 4', p1: '어떤 A는 B이다', p2: '모든 A는 C이다', res: '어떤 B는 C이다', sum: '어AB/모AC/어BC', str: 'A ∩ B 영역이 C에 포함' },
-        { c: 'Case 5', p1: '어떤 A는 B이다', p2: '모든 B는 C이다', res: '어떤 A는 C이다', sum: '어AB/모BC/어AC', str: 'A ∩ B 영역이 C에 포함' }
+        { c: 'Case 4', p1: '모든 A는 B이다', p2: '어떤 A는 C이다', res: '어떤 B는 C이다', sum: '모AB/어AC/어BC', str: 'A의 일부(C)는 B에 포함' },
+        { c: 'Case 5', p1: '어떤 A는 B이다', p2: '모든 A는 C이다', res: '어떤 B는 C이다', sum: '어AB/모AC/어BC', str: 'A ∩ B 영역이 C에 포함' },
+        { c: 'Case 6', p1: '어떤 A는 B이다', p2: '모든 B는 C이다', res: '어떤 A는 C이다', sum: '어AB/모BC/어AC', str: 'A ∩ B 영역이 C에 포함' }
     ];
 
     const fractions = [
